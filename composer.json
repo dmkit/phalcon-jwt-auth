@@ -1,0 +1,22 @@
+{
+    "name": "dmkit/phalcon-jwt-auth",
+    "description": "Basic jwt authentication class for Phalcon framework",
+    "keywords": ["phalcon", "jwt", "authentication"],
+    "type": "library",
+    "authors": [
+        {
+            "name": "Dan Bangayan",
+            "email": "danny.bangayan@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.5",
+        "ext-phalcon": "^3.0",
+        "firebase/php-jwt": "^3.0"
+    },
+    "autoload": {
+        "psr-4": { "Dmkit\\Phalcon\\": "src/Phalcon/" }
+    }
+}

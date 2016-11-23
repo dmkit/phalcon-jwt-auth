@@ -6,6 +6,6 @@ class Auth
 {
 	public static function test()
 	{
-		echo 'yeah testing';
+		return 'yeah testing';
 	}
 }

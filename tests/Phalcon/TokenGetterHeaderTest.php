@@ -1,6 +1,6 @@
 <?php
 
-use Dmkit\Phalcon\TokenGetter\Header;
+use Dmkit\Phalcon\TokenGetter\Handler\Header;
 use Phalcon\Http\RequestInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -14,7 +14,6 @@ class TokenGetterHeaderTest extends TestCase
 		$response->method('getHeader')->willReturn('Bearer '.$token);
 
 		$header = new Header($response);
-		$this->assertEquals(true, $header->exists());
 		$this->assertEquals($token, $header->parse());
 	}
 }

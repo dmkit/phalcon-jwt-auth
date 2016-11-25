@@ -1,6 +1,6 @@
 <?php
 
-use Dmkit\Phalcon\TokenGetter\QueryStr;
+use Dmkit\Phalcon\TokenGetter\Handler\QueryStr;
 use Phalcon\Http\RequestInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -14,7 +14,6 @@ class TokenGetterQueryStrTest extends TestCase
 		$response->method('getQuery')->willReturn($token);
 
 		$header = new QueryStr($response);
-		$this->assertEquals(true, $header->exists());
 		$this->assertEquals($token, $header->parse());
 	}
 }

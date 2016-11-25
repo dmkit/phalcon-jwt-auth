@@ -1,22 +1,23 @@
 <?php
 
-namespace Dmkit\Phalcon\TokenGetter;
+namespace Dmkit\Phalcon\TokenGetter\Handler;
 
-use Dmkit\Phalcon\TokenGetter\Adapter;
+use Dmkit\Phalcon\TokenGetter\Handler\Adapter;
 
 class Header extends Adapter
 {
 	protected $key='Authorization';
 	protected $prefix='Bearer';
-
-	protected function getToken()
-	{
-		return $this->_Request->getHeader($this->key);
-	}
-
+	
 	public function parse() : string
 	{
-		return trim( str_ireplace($this->prefix, '', $this->getToken()));
+		$raw_token = $this->_Request->getHeader($this->key);
+
+		if(!$raw_token) {
+			return '';
+		}
+
+		return trim( str_ireplace($this->prefix, '', $raw_token));
 	}
 
 	public function setKey(string $key)

@@ -1,22 +1,30 @@
 <?php
 namespace Dmkit\Phalcon\Auth\Middleware;
 
-use Phalcon\Mvc\Micro;
+use Phalcon\Mvc\Micro as MvcMicro;
+use Phalcon\Events\Event;
+use Phalcon\Events\Manager as EventsManager;
+use Dmkit\Phalcon\Auth\Auth;
 use Dmkit\Phalcon\Auth\TokenGetter\TokenGetter;
 use Dmkit\Phalcon\Auth\TokenGetter\Handler\Header;
 use Dmkit\Phalcon\Auth\TokenGetter\Handler\QueryStr;
 
 class Micro
 {
-	protected $configkey = 'jwtAuth';
-	protected $diName = 'auth';
+	public static $configDi = 'config';
+	public static $configSection = 'jwtAuth';
+
+	public static $diName = 'auth';
 
 	protected $config;
-	protected $auth;
-
 	protected $ignoreUri;
+	protected $secretKey;
 
-	public function __construct(Micro $app, $config=NULL)
+
+	protected $auth;
+	protected $_onUnauthorized;
+
+	public function __construct(MvcMicro $app, array $config=NULL)
 	{
 		/*
 		pass $app instance
@@ -32,24 +40,21 @@ class Micro
 
 		/*
 			config - [jwtAuth]
-			key
+			secretKey
 			exp
-			alg
-			leeway
 			whatever
 			ignoreUri[] regex:/sdasdasdasd/i:POST
 			ignoreUri[] regex:/sdasdasdasd/i:POST
 		*/
 
-		$diConfig = $app->getDI()->getConfig();
+		$diConfig = $app[self::$configDi];
 
 		if(!$config and !$diConfig) {
 			throw new InvalidArgumentException('missing DI config jwtAuth and config param');
 		}
 
-		$this->config = $config ?? $diConfig->$this->configkey;
+		$this->config = $config ?? $diConfig->{self::$configSection};
 
-		// let's be friendly and type cast if not array
 		if( !is_array($this->config) ) {
 			$this->config = (array) $this->config;			
 		}
@@ -59,23 +64,54 @@ class Micro
 			unset($this->config['ignoreUri']);
 		}
 
-		$this->app = $app;
+		// secret key is required
+		if(!isset($this->config['secretKey'])) {
+			throw new InvalidArgumentException('missing jwt secret key');
+		}
 
-		// let's set the DI
+		$this->secretKey = $this->config['secretKey'];
+		unset($this->config['secretKey']);
+
+		$this->app = $app;
+		$this->auth = new Auth;
+
 		$this->setDi();
+		$this->setBeforeRoute();
 	}
 
 	protected function setDi()
 	{
-		$self = $this;
-		$this->app->getDI()->setShared($this->diName, function() use($self) {
-
-		});
+		$this->app[self::$diName] = $this;
 	}
 
-	public function getIgnoreUris($ignoreUri)
+	protected function setBeforeRoute()
 	{
-		if(!$ignoreUri) {
+		$diName = $this->diName;
+
+		$eventsManager = new EventsManager();
+		$eventsManager->attach(
+		    "micro:beforeExecuteRoute",
+		    function (Event $event, $app) use($diName) {
+		    	$auth = $app[$diName];
+
+		        if($auth->isIgnoreUri()) {
+		        	return true;
+		        }
+
+		        if($auth->check()) {
+		        	return true;
+		        }
+
+		        return $auth->unauthorized();
+		    }
+		);
+
+		$this->app->setEventsManager($eventsManager);
+	}
+
+	protected function getIgnoreUris()
+	{
+		if(!$this->ignoreUri) {
 			return [];
 		}
 
@@ -91,17 +127,21 @@ class Micro
 			list($pattern, $methods) = explode(':', $uri);
 			$uris[] = [
 				'type' => $type,
-				'patter' => $pattern,
+				'pattern' => $pattern,
 				'methods' => ( !$methods ? false : explode(',', $methods) )
 			];
 		}
 
-		reutrn $uris;
+		return $uris;
 	}
 
-	public function isIgnoredUri()
+	public function isIgnoreUri()
 	{
-		$ignored = $this->getIgnoreUris( $this->ignoreUri );
+		if(!$this->ignoreUri) {
+			return false;
+		}
+
+		$ignoreRules = $this->getIgnoreUris();
 		// access request object
 		$request = $this->app->getDI()->get('request');
 
@@ -110,6 +150,63 @@ class Micro
 		// http method
 		$method = $request->getMethod();
 		
-		
+		foreach($ignoreRules as $rule) {
+			$match = ( $rule['str'] ? $uri == $rule['pattern'] : preg_match($rule['pattern'], $uri) );
+			if( $match && (!$rule['methods'] or in_array($method, $rule['methods'])) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function check()
+	{
+		$getter = new TokenGetter( new Header, new  QueryStr);
+		return $this->auth->check($getter, $this->secretKey);
+	}
+
+	public function make($data)
+	{
+		$payload = array_merge($this->config, $data);
+		return $this->auth->make($payload, $this->secretKey);
+	}
+
+	public function onCheck($callback) 
+	{
+		$this->auth->onCheck($callback);
+	}
+
+	public function onUnauthorized(callable $callback)
+	{
+		$this->_onUnauthorized = $callback;
+	}
+
+	public function unauthorized() {
+		if($this->_onUnauthorized) {
+			return $this->_onUnauthorized($this, $this->app["response"]);
+		}
+
+		$response = $this->app["response"];
+		$response->setStatusCode(401, 'Unauthorized');
+		$response->setContentType("application/json");
+		$response->setContent(json_encode([$this->getMessages()[0]]));
+		$response->send();
+		return false;
+	}
+
+	public function getMessages()
+	{
+		return $this->auth->getMessages(); 
+	}
+
+	public function id()
+	{
+		return $this->auth->id();
+	}
+
+	public function data()
+	{
+		return $this->auth->data();
 	}
 }

@@ -3,14 +3,16 @@
 namespace Dmkit\Phalcon\Auth;
 
 use Firebase\JWT\JWT;
+use Dmkit\Phalcon\Auth\Adapter;
 use Dmkit\Phalcon\Auth\TokenGetter\AdapterInterface as TokenGetter;
 
-class Auth
+class Auth extends Adapter
 {
 	protected $options = [];
 
 	protected $key;
 	protected $alg;
+	protected $leeway;
 
 	protected $parser;
 
@@ -31,6 +33,17 @@ class Auth
 		$this->alg = $options['alg'] ?? 'HS256';
 		unset($options['alg']);
 
+		if(isset($options['exp'])) {
+			$options['exp'] = $this->getTime($options['exp']);
+		}
+
+		if(isset($options['leeway'])) {
+			$this->leeway = $options['leeway'];
+		}
+
+		// we don't want them to be part of the payload
+		unset($options['key'], $options['alg'], $options['leeway']);
+
 		$this->options = $options;
 
 		if($parser) {
@@ -41,10 +54,20 @@ class Auth
 	public function make(array $options=NULL)
 	{
 		if($options) {
+			
+			if(isset($options['exp'])) {
+				$options['exp'] = $this->getTime($options['exp']);
+			}
+
 			$this->options = array_merge($this->options, $options);
 		}
 		
 		return JWT::encode($this->options, $this->key, $this->alg);
+	}
+
+	protected function getTime($mins) 
+	{
+		return time() + (60 * $mins);
 	}
 
 	public function onCheck(callable $callback)
@@ -63,6 +86,10 @@ class Auth
 		$token = $getter->parse();
 
 		try {
+			if($this->leeway) {
+				JWT::$leeway = (60 * $this->leeway);
+			}
+
 			$options = (array) JWT::decode($token, $this->key, [$this->alg]);
 			$this->options = $options;
 		} catch(\Exception $e) {

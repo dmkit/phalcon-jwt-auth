@@ -33,11 +33,16 @@ class AuthTest extends TestCase
 	public function testMake()
 	{
 		$options = array_merge($this->options, [
-			'key'=>$this->secretKey
+			'key'=>$this->secretKey,
+			'exp'=>120
 		]);
 		$auth = new Auth($options);
 
+		// pass exp as constructor
 		$this->assertEquals($this->jwt, $auth->make());
+
+		// pass exp as param
+		$this->assertEquals($this->jwt, $auth->make(array('exp'=>120)));
 	}
 
 	public function testCheckSuccess()

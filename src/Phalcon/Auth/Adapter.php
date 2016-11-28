@@ -9,40 +9,54 @@ use Dmkit\Phalcon\Auth\TokenGetter\AdapterInterface as TokenGetter;
 abstract class Adapter implements AdapterInterface
 {
 	// payloads or data
-	protected $options = [];
+	protected $payload = [];
 
 	// window time for jwt to expire
 	protected $leeway;
+	
+	// supported algs are on JWT::$supported_algs
+	protected $algo = 'HS256';
 
 	protected $errorMsgs = [];
 
-	public function minToSec($mins)
+	public function minToSec(int $mins)
 	{
 		return (60 * $mins);
 	}
 
-	public function leeway($mins) 
+	public function setLeeway(int $mins) 
 	{
 		$this->leeway = $this->minToSec($mins);
 	}
 
-	protected function decodeJwt(string $token, $key, $alg)
+	public function setAlgo(string $alg) {
+		$this->algo = $alg;
+	}
+
+	protected function decode($token, $key)
 	{
 		try {
 			if($this->leeway) {
 				JWT::$leeway = $this->leeway;
 			}
-			$data = (array) JWT::decode($token, $key, ( is_array($alg) ? $alg : [$alg] ));
-			return $data;
+
+			$payload = (array) JWT::decode($token, $key, [$this->algo]);
+			
+			return $payload;
+
 		} catch(\Exception $e) {
 			$this->appendMessage($e->getMessage());
 			return false;
+
 		}
 	}
 
-	protected function encodeJwt($data, $key, $alg)
+	protected function encode($payload, $key)
 	{
-		return JWT::encode($data, $key, ( is_array($alg) ? $alg : [$alg] ));
+		if( isset($payload['exp']) ) {
+			$payload['exp'] = time() + $this->minToSec($payload['exp']);
+		}
+		return JWT::encode($payload, $key, $this->algo);
 	}
 
 	public function appendMessage(string $msg) 
@@ -57,11 +71,11 @@ abstract class Adapter implements AdapterInterface
 
 	public function id()
 	{
-		return $this->options['sub'] ?? $this->options['id'];
+		return $this->payload['sub'] ?? $this->payload['id'];
 	}
 
 	public function data()
 	{
-		return $this->options;
+		return $this->payload;
 	}
 }

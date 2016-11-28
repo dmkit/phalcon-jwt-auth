@@ -24,25 +24,22 @@ class AuthTest extends TestCase
 
 		$this->options = [
 				'sub' => 123,
-				'exp' => strtotime('+2 hours')
+				'exp' => 120
 			];
 
-		$this->jwt = JWT::encode($this->options, $this->secretKey);
+		$options = $this->options;
+		$options['exp'] = strtotime('+2 hours');
+
+		$this->jwt = JWT::encode($options, $this->secretKey);
 	}
 
 	public function testMake()
 	{
-		$options = array_merge($this->options, [
-			'key'=>$this->secretKey,
-			'exp'=>120
-		]);
-		$auth = new Auth($options);
+		$auth = new Auth;
 
 		// pass exp as constructor
-		$this->assertEquals($this->jwt, $auth->make());
-
-		// pass exp as param
-		$this->assertEquals($this->jwt, $auth->make(array('exp'=>120)));
+		$token = $auth->make($this->options, $this->secretKey);
+		$this->assertEquals($this->jwt, $token);
 	}
 
 	public function testCheckSuccess()
@@ -55,17 +52,17 @@ class AuthTest extends TestCase
 		$header = new Header($response);
 
 		$parser = new TokenGetter($header, $query);
-		$options = array_merge($this->options, [
-			'key'=>$this->secretKey
-		]);
 
-		$auth = new Auth($options, $parser);
+		$auth = new Auth;
 
-		$this->assertTrue($auth->check());
+		$this->assertTrue($auth->check($parser, $this->secretKey));
 
 		$this->assertEquals(123, $auth->id());
 
-		$this->assertEquals($this->options, $auth->data());
+		$options = $this->options;
+		$options['exp'] = strtotime('+2 hours');
+
+		$this->assertEquals($options, $auth->data());
 	}
 
 	public function testCheckCallback()
@@ -73,12 +70,8 @@ class AuthTest extends TestCase
 		$response = $this->createMock(RequestInterface::class);
 		$response->method('getQuery')->willReturn($this->jwt);
 
-		$options = [
-			'key'=>$this->secretKey,
-			'sub'=>123
-		];
 
-		$auth = new Auth($options, new QueryStr($response));
+		$auth = new Auth;
 
 		$auth->onCheck(function($auth) {
 			$auth->appendMessage('callback 1');
@@ -93,7 +86,7 @@ class AuthTest extends TestCase
 			$auth->appendMessage('callback 3');
 		});
 
-		$this->assertTrue( !$auth->check() );
+		$this->assertTrue( !$auth->check(new QueryStr($response), $this->secretKey) );
 
 		// makse sure callback were properly called
 		$expected_errors = [
@@ -109,16 +102,11 @@ class AuthTest extends TestCase
 		$response = $this->createMock(RequestInterface::class);
 		$response->method('getQuery')->willReturn($this->jwt);
 
-		$options = [
-			'key'=>$this->secretKey,
-			'sub'=>123
-		];
-
-		$auth = new Auth($options, new QueryStr($response));
+		$auth = new Auth;
 
 		JWT::$timestamp = strtotime('+1 week');
 
-		$this->assertTrue( !$auth->check() );
+		$this->assertTrue( !$auth->check(new QueryStr($response), $this->secretKey) );
 
 		$expected_errors = ['Expired token'];
 

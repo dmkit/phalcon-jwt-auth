@@ -14,6 +14,4 @@ abstract class Adapter implements AdapterInterface
 	{
 		$this->_Request = $request;
 	}
-
-	abstract public function parse(): string;
 }

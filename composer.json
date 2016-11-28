@@ -14,9 +14,9 @@
     "require": {
         "php": ">=7.0",
         "ext-phalcon": "^3.0",
-        "firebase/php-jwt": "^3.0"
+        "firebase/php-jwt": "^4.0"
     },
     "autoload": {
-        "psr-4": { "Dmkit\\Phalcon\\": "src/Phalcon/" }
+        "psr-4": { "Dmkit\\Phalcon\\Auth\\": "src/Phalcon/Auth/" }
     }
 }

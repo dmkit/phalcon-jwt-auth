@@ -1,6 +1,6 @@
 <?php
 
-use Dmkit\Phalcon\TokenGetter\Handler\Header;
+use Dmkit\Phalcon\Auth\TokenGetter\Handler\Header;
 use Phalcon\Http\RequestInterface;
 use PHPUnit\Framework\TestCase;
 

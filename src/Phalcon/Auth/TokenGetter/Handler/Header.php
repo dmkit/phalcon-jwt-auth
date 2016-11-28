@@ -1,8 +1,8 @@
 <?php
 
-namespace Dmkit\Phalcon\TokenGetter\Handler;
+namespace Dmkit\Phalcon\Auth\TokenGetter\Handler;
 
-use Dmkit\Phalcon\TokenGetter\Handler\Adapter;
+use Dmkit\Phalcon\Auth\TokenGetter\Handler\Adapter;
 
 class Header extends Adapter
 {

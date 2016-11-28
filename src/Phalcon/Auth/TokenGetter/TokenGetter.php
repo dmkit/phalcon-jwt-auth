@@ -1,8 +1,8 @@
 <?php
 
-namespace Dmkit\Phalcon\TokenGetter;
+namespace Dmkit\Phalcon\Auth\TokenGetter;
 
-use Dmkit\Phalcon\TokenGetter\AdapterInterface;
+use Dmkit\Phalcon\Auth\TokenGetter\AdapterInterface;
 
 class TokenGetter implements AdapterInterface
 {

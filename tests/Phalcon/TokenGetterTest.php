@@ -1,8 +1,8 @@
 <?php
 
-use Dmkit\Phalcon\TokenGetter\Handler\Header;
-use Dmkit\Phalcon\TokenGetter\Handler\QueryStr;
-use Dmkit\Phalcon\TokenGetter\TokenGetter;
+use Dmkit\Phalcon\Auth\TokenGetter\Handler\Header;
+use Dmkit\Phalcon\Auth\TokenGetter\Handler\QueryStr;
+use Dmkit\Phalcon\Auth\TokenGetter\TokenGetter;
 use Phalcon\Http\RequestInterface;
 use PHPUnit\Framework\TestCase;
 

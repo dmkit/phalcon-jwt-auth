@@ -44,16 +44,14 @@ class Micro
 			exp
 			whatever
 			ignoreUri[] regex:/sdasdasdasd/i:POST
-			ignoreUri[] regex:/sdasdasdasd/i:POST
+			ignoreUri[] /sdasdasdasd/dadasd:POST
 		*/
 
-		$diConfig = $app[self::$configDi];
-
-		if(!$config and !$diConfig) {
-			throw new InvalidArgumentException('missing DI config jwtAuth and config param');
+		if(!$config && !$app->getDI()->has(self::$configDi)) {
+			throw new \InvalidArgumentException('missing DI config jwtAuth and config param');
 		}
 
-		$this->config = $config ?? $diConfig->{self::$configSection};
+		$this->config = $config ?? $app[self::$configDi]->{self::$configSection};
 
 		if( !is_array($this->config) ) {
 			$this->config = (array) $this->config;			
@@ -66,7 +64,7 @@ class Micro
 
 		// secret key is required
 		if(!isset($this->config['secretKey'])) {
-			throw new InvalidArgumentException('missing jwt secret key');
+			throw new \InvalidArgumentException('missing jwt secret key');
 		}
 
 		$this->secretKey = $this->config['secretKey'];
@@ -86,7 +84,7 @@ class Micro
 
 	protected function setBeforeRoute()
 	{
-		$diName = $this->diName;
+		$diName = self::$diName;
 
 		$eventsManager = new EventsManager();
 		$eventsManager->attach(
@@ -116,7 +114,7 @@ class Micro
 		}
 
 		$uris = [];
-		foreach($ignoreUri as $uri) {
+		foreach($this->ignoreUri as $uri) {
 			if(strpos($uri, 'regex:') === false) {
 				$type = 'str';
 			} else {
@@ -124,11 +122,11 @@ class Micro
 				$uri = str_replace('regex:', '', $uri);
 			}
 
-			list($pattern, $methods) = explode(':', $uri);
+			list($pattern, $methods) = ( strpos($uri, ':') === false ? [$uri, false] : explode(':', $uri ) );
 			$uris[] = [
 				'type' => $type,
 				'pattern' => $pattern,
-				'methods' => ( !$methods ? false : explode(',', $methods) )
+				'methods' => ( !$methods || empty($methods) ? false : explode(',', $methods) )
 			];
 		}
 
@@ -143,7 +141,7 @@ class Micro
 
 		$ignoreRules = $this->getIgnoreUris();
 		// access request object
-		$request = $this->app->getDI()->get('request');
+		$request = $this->app['request'];
 
 		// url
 		$uri = $request->getURI();
@@ -151,8 +149,8 @@ class Micro
 		$method = $request->getMethod();
 		
 		foreach($ignoreRules as $rule) {
-			$match = ( $rule['str'] ? $uri == $rule['pattern'] : preg_match($rule['pattern'], $uri) );
-			if( $match && (!$rule['methods'] or in_array($method, $rule['methods'])) ) {
+			$match = ( $rule['type'] == 'str' ? $uri == $rule['pattern'] : preg_match($rule['pattern'], $uri) );
+			if( $match && (!$rule['methods'] || in_array($method, $rule['methods'])) ) {
 				return true;
 			}
 		}
@@ -162,7 +160,8 @@ class Micro
 
 	public function check()
 	{
-		$getter = new TokenGetter( new Header, new  QueryStr);
+		$request = $this->app['request'];
+		$getter = new TokenGetter( new Header($request), new  QueryStr($request));
 		return $this->auth->check($getter, $this->secretKey);
 	}
 

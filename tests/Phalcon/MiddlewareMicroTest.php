@@ -12,7 +12,6 @@ use PHPUnit\Framework\TestCase;
 class MiddlewareMicroTest extends TestCase
 {
 	protected $app;
-	protected $request;
 	protected $middleware;
 	protected $config;
 
@@ -26,15 +25,9 @@ class MiddlewareMicroTest extends TestCase
 			'secretKey' => 'secret key',
 			'appName'	=> 'TestMiddleware',
 			'ignoreUri' => [
-				'regex:/.*/:POST,GET'
+				'regex:/users/:POST,GET'
 			]
 		];
-
-		$request = $this->createMock(RequestInterface::class);
-
-		$this->request = $request;
-
-		//$this->app['request'] = $this->request;
 
 		$config = new class{};
 		$config->jwtAuth = $this->config;
@@ -46,12 +39,17 @@ class MiddlewareMicroTest extends TestCase
 		$this->app->get('/users', function() { echo '["users get"]'; });
 		$this->app->post('/users', function() { echo '["users post"]'; });
 
-		$this->app->handle('/users');
+		// call this on test methods instead
+		//$this->app->handle('/users');
+	}
+
+	public function setRequest($uri, $method) 
+	{
+		$request = $this->createMock(RequestInterface::class);
 	}
 
 	public function testRequestAuth()
 	{
-		print_r($this->app['request']->getURI());
 		$this->assertEquals(true, true);
 
 		$this->assertEquals(true, $this->app['response']->getStatusCode() );

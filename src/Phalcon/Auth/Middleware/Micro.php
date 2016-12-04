@@ -16,7 +16,7 @@ class Micro
 
 	public static $diName = 'auth';
 
-	protected $config;
+	protected $payload;
 	protected $ignoreUri;
 	protected $secretKey;
 
@@ -41,8 +41,8 @@ class Micro
 		/*
 			config - [jwtAuth]
 			secretKey
-			exp
-			whatever
+			payload[exp] 123
+			payload[iis] abc 
 			ignoreUri[] regex:/sdasdasdasd/i:POST
 			ignoreUri[] /sdasdasdasd/dadasd:POST
 		*/
@@ -59,7 +59,6 @@ class Micro
 
 		if(isset($this->config['ignoreUri'])) {
 			$this->ignoreUri = $this->config['ignoreUri'];
-			unset($this->config['ignoreUri']);
 		}
 
 		// secret key is required
@@ -68,7 +67,7 @@ class Micro
 		}
 
 		$this->secretKey = $this->config['secretKey'];
-		unset($this->config['secretKey']);
+		$this->payload = $this->config['payload'] ?? [];
 
 		$this->app = $app;
 		$this->auth = new Auth;
@@ -145,6 +144,7 @@ class Micro
 
 		// url
 		$uri = $request->getURI();
+
 		// http method
 		$method = $request->getMethod();
 		
@@ -167,7 +167,7 @@ class Micro
 
 	public function make($data)
 	{
-		$payload = array_merge($this->config, $data);
+		$payload = array_merge($this->payload, $data);
 		return $this->auth->make($payload, $this->secretKey);
 	}
 

@@ -1,6 +1,6 @@
 {
     "name": "dmkit/phalcon-jwt-auth",
-    "description": "Basic jwt authentication class for Phalcon framework",
+    "description": "Basic jwt authentication for Phalcon framework",
     "keywords": ["phalcon", "jwt", "authentication"],
     "type": "library",
     "authors": [

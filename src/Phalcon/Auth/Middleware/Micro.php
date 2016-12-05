@@ -66,6 +66,10 @@ class Micro
 			throw new \InvalidArgumentException('missing DI config jwtAuth and config param');
 		}
 
+		if(!$config && !isset($app[self::$configDi]->{self::$configSection})) {
+			throw new \InvalidArgumentException('missing DI config jwtAuth and config param');
+		}
+
 		$this->config = $config ?? $app[self::$configDi]->{self::$configSection};
 
 		if( !is_array($this->config) ) {

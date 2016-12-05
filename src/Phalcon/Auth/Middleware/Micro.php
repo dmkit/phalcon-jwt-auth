@@ -86,7 +86,7 @@ class Micro
 		}
 
 		$this->secretKey = $this->config['secretKey'];
-		$this->payload = $this->config['payload'] ?? [];
+		$this->payload = (array) $this->config['payload'] ?? [];
 
 		$this->app = $app;
 		$this->auth = new Auth;

@@ -136,12 +136,12 @@ class Micro
 	/**
      * Checks the uri and method if it has a match in the passed self::$ignoreUris.
      *
-     * @param string $uri
-     * @param string $method HTTP METHODS
+     * @param string $requestUri
+     * @param string $requestMethod HTTP METHODS
      *
      * @return bool
      */
-	protected function hasMatchIgnoreUri($uri, $method)
+	protected function hasMatchIgnoreUri($requestUri, $requestMethod)
 	{
 		foreach($this->ignoreUri as $uri) {
 			if(strpos($uri, 'regex:') === false) {
@@ -154,8 +154,8 @@ class Micro
 			list($pattern, $methods) = ( strpos($uri, ':') === false ? [$uri, false] : explode(':', $uri ) );
 			$methods = ( !$methods || empty($methods) ? false : explode(',', $methods) );
 
-			$match = ( $type == 'str' ? $uri == $pattern : preg_match($pattern, $uri) );
-			if( $match && (!$methods || in_array($method, $methods)) ) {
+			$match = ( $type == 'str' ? $requestUri == $pattern : preg_match($pattern, $requestUri) );
+			if( $match && (!$methods || in_array($requestMethod, $methods)) ) {
 				return true;
 			}
 		}

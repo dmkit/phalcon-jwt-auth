@@ -9,43 +9,58 @@ use Dmkit\Phalcon\Auth\TokenGetter\TokenGetter;
 use Dmkit\Phalcon\Auth\TokenGetter\Handler\Header;
 use Dmkit\Phalcon\Auth\TokenGetter\Handler\QueryStr;
 
+/**
+ * Dmkit\Phalcon\Auth\Middleware\Micro.
+ * The concept of controllers doesn't exist in Micro apps
+ * so checking of URLS and methods have to be done on the Request level.
+ */
 class Micro
 {
+	// config key
 	public static $configDi = 'config';
+
+	// config section key
 	public static $configSection = 'jwtAuth';
 
+	// DI name
 	public static $diName = 'auth';
 
+	// JWT payload
 	protected $payload;
+
+	// ignored urls
 	protected $ignoreUri;
+
+	// JWT secret key
 	protected $secretKey;
 
-
+	// Auth Object
 	protected $auth;
+
+	// Unauthorize calllback
 	protected $_onUnauthorized;
 
+	/**
+     * Sets app and config.
+     *
+     * @param Phalcon\Mvc\Micro $app
+     * @param array|config $config
+     *
+     */
 	public function __construct(MvcMicro $app, array $config=NULL)
 	{
-		/*
-		pass $app instance
-		look for DI config
-		add static overrider function for
-			before - to parse routes and return header 401
-			DI config - change key
-			additional validation of Auth::check
-			for default parser
-		construct AUth
-		construct Parser
-		*/
-
-		/*
-			config - [jwtAuth]
-			secretKey
-			payload[exp] 123
-			payload[iis] abc 
-			ignoreUri[] regex:/sdasdasdasd/i:POST
-			ignoreUri[] /sdasdasdasd/dadasd:POST
-		*/
+		/**
+		 * example of config:
+		 * [jwtAuth]
+		 * secretKey = nSrL7k4/7NcW|AN
+		 * payload[exp] = 120
+		 * payload[iss] = phalcon-jwt-auth 
+		 * payload[sub] = 123 
+		 * payload[name] = John Doe 
+		 * payload[role] = admin 
+		 * ignoreUri[] = regex:/register/:POST
+		 * ignoreUri[] = /register
+		 */
 
 		if(!$config && !$app->getDI()->has(self::$configDi)) {
 			throw new \InvalidArgumentException('missing DI config jwtAuth and config param');
@@ -73,15 +88,23 @@ class Micro
 		$this->auth = new Auth;
 
 		$this->setDi();
-		$this->setBeforeRoute();
+		$this->setEventChecker();
 	}
 
+	/**
+     * Sets DI
+     *
+     */
 	protected function setDi()
 	{
 		$this->app[self::$diName] = $this;
 	}
 
-	protected function setBeforeRoute()
+	/**
+     * Sets event authentication.
+     *
+     */
+	protected function setEventChecker()
 	{
 		$diName = self::$diName;
 
@@ -106,13 +129,16 @@ class Micro
 		$this->app->setEventsManager($eventsManager);
 	}
 
-	protected function getIgnoreUris()
+	/**
+     * Checks the uri and method if it has a match in the passed self::$ignoreUris.
+     *
+     * @param string $uri
+     * @param string $method HTTP METHODS
+     *
+     * @return bool
+     */
+	protected function hasMatchIgnoreUri($uri, $method)
 	{
-		if(!$this->ignoreUri) {
-			return [];
-		}
-
-		$uris = [];
 		foreach($this->ignoreUri as $uri) {
 			if(strpos($uri, 'regex:') === false) {
 				$type = 'str';
@@ -122,23 +148,28 @@ class Micro
 			}
 
 			list($pattern, $methods) = ( strpos($uri, ':') === false ? [$uri, false] : explode(':', $uri ) );
-			$uris[] = [
-				'type' => $type,
-				'pattern' => $pattern,
-				'methods' => ( !$methods || empty($methods) ? false : explode(',', $methods) )
-			];
+			$methods = ( !$methods || empty($methods) ? false : explode(',', $methods) );
+
+			$match = ( $type == 'str' ? $uri == $pattern : preg_match($pattern, $uri) );
+			if( $match && (!$methods || in_array($method, $methods)) ) {
+				return true;
+			}
 		}
 
-		return $uris;
+		return false;
 	}
 
+	/**
+     * Checks if the URI and HTTP METHOD can bypass the authentication.
+     *
+     * @return bool
+     */
 	public function isIgnoreUri()
 	{
 		if(!$this->ignoreUri) {
 			return false;
 		}
 
-		$ignoreRules = $this->getIgnoreUris();
 		// access request object
 		$request = $this->app['request'];
 
@@ -147,17 +178,15 @@ class Micro
 
 		// http method
 		$method = $request->getMethod();
-		
-		foreach($ignoreRules as $rule) {
-			$match = ( $rule['type'] == 'str' ? $uri == $rule['pattern'] : preg_match($rule['pattern'], $uri) );
-			if( $match && (!$rule['methods'] || in_array($method, $rule['methods'])) ) {
-				return true;
-			}
-		}
 
-		return false;
+		return $this->hasMatchIgnoreUri($uri, $method);
 	}
 
+	/**
+     * Authenticates.
+     *
+     * @return bool
+     */
 	public function check()
 	{
 		$request = $this->app['request'];
@@ -165,22 +194,42 @@ class Micro
 		return $this->auth->check($getter, $this->secretKey);
 	}
 
+	/**
+     * Authenticates.
+     *
+     * @return bool
+     */
 	public function make($data)
 	{
 		$payload = array_merge($this->payload, $data);
 		return $this->auth->make($payload, $this->secretKey);
 	}
 
+	/**
+     * Adds a callback to the Check call
+     *
+     * @param callable $callback
+     */
 	public function onCheck($callback) 
 	{
 		$this->auth->onCheck($callback);
 	}
 
+	/**
+     * Sets the unauthorized return
+     *
+     * @param callable $callback
+     */
 	public function onUnauthorized(callable $callback)
 	{
 		$this->_onUnauthorized = $callback;
 	}
 
+	/**
+     * Calls the unauthorized function / callback
+     *
+     * @return bool return false to cancel the router
+     */
 	public function unauthorized() {
 		if($this->_onUnauthorized) {
 			return $this->_onUnauthorized($this, $this->app["response"]);
@@ -194,18 +243,36 @@ class Micro
 		return false;
 	}
 
+	/**
+     * Returns error messages
+     *
+     * @return array
+     */
 	public function getMessages()
 	{
 		return $this->auth->getMessages(); 
 	}
 
+	/**
+     * Returns JWT payload sub or payload id.
+     *
+     * @return string
+     */
 	public function id()
 	{
 		return $this->auth->id();
 	}
 
-	public function data()
+	/**
+     * Returns payload or value of payload key.
+     *
+     * @param array $payload
+     * @param string $key
+     *
+     * @return array|string
+     */
+	public function data($field=NULL)
 	{
-		return $this->auth->data();
+		return $this->auth->data($field);
 	}
 }

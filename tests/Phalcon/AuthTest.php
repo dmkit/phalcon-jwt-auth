@@ -63,6 +63,7 @@ class AuthTest extends TestCase
 		$options['exp'] = strtotime('+2 hours');
 
 		$this->assertEquals($options, $auth->data());
+		$this->assertEquals($options['sub'], $auth->data('sub'));
 	}
 
 	public function testCheckCallback()

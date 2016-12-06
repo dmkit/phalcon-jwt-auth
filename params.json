@@ -1,0 +1,6 @@
+{
+  "name": "Phalcon-jwt-auth",
+  "tagline": "Basic jwt authentication class for Phalcon framework",
+  "body": "# phalcon-jwt-auth\r\n\r\n***\r\nA simple JWT middleware to handle stateless authentication.\r\n\r\n## Installation\r\n\r\n***\r\n`composer require dmkit/phalcon-jwt-auth`",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}

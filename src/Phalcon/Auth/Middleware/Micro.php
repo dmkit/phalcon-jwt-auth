@@ -119,6 +119,8 @@ class Micro
 		    	$auth = $app[$diName];
 
 		        if($auth->isIgnoreUri()) {
+		        	// let's still try to parse the token if passed
+		        	$auth->check();
 		        	return true;
 		        }
 
@@ -236,7 +238,7 @@ class Micro
      */
 	public function unauthorized() {
 		if($this->_onUnauthorized) {
-			return $this->_onUnauthorized($this, $this->app["response"]);
+			return $this->_onUnauthorized($this, $this->app);
 		}
 
 		$response = $this->app["response"];

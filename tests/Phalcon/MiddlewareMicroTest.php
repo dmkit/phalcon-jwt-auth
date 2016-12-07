@@ -102,6 +102,25 @@ class MiddlewareMicroTest extends TestCase
 		$this->assertEquals('["members put"]',  $this->app['response']->getContent());
 	}
 
+	public function testIgnoreUriWithToken()
+	{
+		$_SERVER['REQUEST_URI'] = '/members';
+		$_SERVER["REQUEST_METHOD"] = "PUT";
+
+		$payload = $this->config['payload'];
+
+		$jwt = JWT::encode($payload, $this->config['secretKey']);
+
+		$_GET['token'] = $jwt;
+		
+		// call this on test methods instead
+		$this->app->handle('/members');
+
+		$this->assertEquals('200 OK',  $this->app['response']->getStatusCode());
+		$this->assertEquals('["members put"]',  $this->app['response']->getContent());
+		$this->assertEquals($payload['sub'],  $this->app['auth']->id());
+	}
+
 	public function testPassedExpiredToken()
 	{
 		$_SERVER['REQUEST_URI'] = '/members';
@@ -139,7 +158,7 @@ class MiddlewareMicroTest extends TestCase
 		$this->assertEquals('["members post"]',  $this->app['response']->getContent());
 
 		// make sure data is correct
-		$this->assertEquals($payload,  $this->middleware->data());		
+		$this->assertEquals($payload,  $this->app['auth']->data());
 	}
 
 }

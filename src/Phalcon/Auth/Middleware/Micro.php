@@ -125,7 +125,7 @@ class Micro
 		        	 */
 		        	if( !$auth->check() && $this->getMessages()[0] != 'missing token') 
 		        	{
-		        		return false;
+		        		return $auth->unauthorized();
 		        	}
 
 		        	return true;

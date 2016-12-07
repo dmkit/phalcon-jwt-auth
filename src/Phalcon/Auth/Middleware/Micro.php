@@ -119,8 +119,15 @@ class Micro
 		    	$auth = $app[$diName];
 
 		        if($auth->isIgnoreUri()) {
-		        	// let's still try to parse the token if passed
-		        	$auth->check();
+		        	/**
+		        	 * Let's try to parse if there's a token
+		        	 * but we don't want to get an invalid token
+		        	 */
+		        	if( !$auth->check() && $this->getMessages()[0] != 'missing token') 
+		        	{
+		        		return false;
+		        	}
+
 		        	return true;
 		        }
 

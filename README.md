@@ -6,6 +6,19 @@ A simple JWT middleware for Phalcon Micro to handle stateless authentication.
 ```
 composer require dmkit/phalcon-jwt-auth
 ```
+or in your composer.json
+```
+{
+    "require": {
+		"dmkit/phalcon-jwt-auth" : "dev-master"
+    }
+}
+
+```
+then run
+```
+composer update
+```
 
 ## Usage
 

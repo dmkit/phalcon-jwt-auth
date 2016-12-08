@@ -1,6 +1,6 @@
 {
     "name": "dmkit/phalcon-jwt-auth",
-    "description": "Basic jwt authentication for Phalcon framework",
+    "description": "A simple JWT middleware for Phalcon Micro to handle stateless authentication",
     "keywords": ["phalcon", "jwt", "authentication"],
     "type": "library",
     "authors": [

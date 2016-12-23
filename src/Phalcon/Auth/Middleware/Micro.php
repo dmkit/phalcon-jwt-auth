@@ -163,7 +163,7 @@ class Micro
 			list($pattern, $methods) = ( strpos($uri, ':') === false ? [$uri, false] : explode(':', $uri ) );
 			$methods = ( !$methods || empty($methods) ? false : explode(',', $methods) );
 
-			$match = ( $type == 'str' ? $requestUri == $pattern : preg_match($pattern, $requestUri) );
+			$match = ( $type == 'str' ? $requestUri == $pattern : preg_match("#{$pattern}#", $requestUri) );
 			if( $match && (!$methods || in_array($requestMethod, $methods)) ) {
 				return true;
 			}

@@ -30,7 +30,7 @@ class MiddlewareMicroTest extends TestCase
 				"admin"	=> true
 			],
 			'ignoreUri' => [
-				'regex:/members/:PUT'
+				'regex:/members:PUT'
 			]
 		];
 
@@ -76,7 +76,7 @@ class MiddlewareMicroTest extends TestCase
 			$response->send();
 		});
 
-		$this->app->option('/members', function() use($app) { 
+		$this->app->options('/members', function() use($app) { 
 			$response = $app["response"];
 			$response->setStatusCode(204);
 			$response->setContentType("application/json");
@@ -103,11 +103,13 @@ class MiddlewareMicroTest extends TestCase
 		//  override for testing
 		$_SERVER['REQUEST_URI'] = '/members';
 		$_SERVER["REQUEST_METHOD"] = "OPTIONS";
+
+		$this->middleware->setIgnoreOptionsMethod();
 		
 		// call this on test methods instead
 		$this->app->handle('/members');
 
-		$this->assertEquals('204 OK',  $this->app['response']->getStatusCode());
+		$this->assertEquals('204 No Content',  $this->app['response']->getStatusCode());
 	}
 
 	public function testIgnoreUri()

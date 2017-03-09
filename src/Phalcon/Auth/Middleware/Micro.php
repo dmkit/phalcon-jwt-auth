@@ -35,7 +35,7 @@ class Micro
 	protected $secretKey;
 
 	// Ignore OPTIONS for CORS support
-	protected $ignoreOptionMethod = false;
+	protected $ignoreOptionsMethod = false;
 
 	// Auth Object
 	protected $auth;
@@ -103,18 +103,18 @@ class Micro
      *  Ignore OPTIONS for CORS support
      *
      */
-	public function setIgnoreOptionMethod()
+	public function setIgnoreOptionsMethod()
 	{
-		$this->ignoreOptionMethod = true;
+		$this->ignoreOptionsMethod = true;
 	}
 
 	/**
      *  Checks if OPTIONS METHOD Should be ignored
      *
      */
-	public function isIgnoreOptionMethod()
+	public function isIgnoreOptionsMethod()
 	{
-		return $this->ignoreOptionMethod;
+		return $this->ignoreOptionsMethod;
 	}
 
 	/**
@@ -141,7 +141,7 @@ class Micro
 		    	$auth = $app[$diName];
 
 		    	// check if it has CORS support
-		    	if ($auth->isIgnoreOptionMethod() && $app['request']->getMethod() == 'OPTIONS') {
+		    	if ($auth->isIgnoreOptionsMethod() && $app['request']->getMethod() == 'OPTIONS') {
 		    		return true;
 		    	}
 

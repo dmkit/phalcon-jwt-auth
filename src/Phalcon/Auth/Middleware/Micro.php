@@ -34,6 +34,9 @@ class Micro
 	// JWT secret key
 	protected $secretKey;
 
+	// Ignore OPTIONS for CORS support
+	protected $ignoreOptionMethod = false;
+
 	// Auth Object
 	protected $auth;
 
@@ -95,6 +98,25 @@ class Micro
 		$this->setEventChecker();
 	}
 
+
+	/**
+     *  Ignore OPTIONS for CORS support
+     *
+     */
+	public function setIgnoreOptionMethod()
+	{
+		$this->ignoreOptionMethod = true;
+	}
+
+	/**
+     *  Checks if OPTIONS METHOD Should be ignored
+     *
+     */
+	public function isIgnoreOptionMethod()
+	{
+		return $this->ignoreOptionMethod;
+	}
+
 	/**
      * Sets DI
      *
@@ -117,6 +139,11 @@ class Micro
 		    "micro:beforeExecuteRoute",
 		    function (Event $event, $app) use($diName) {
 		    	$auth = $app[$diName];
+
+		    	// check if it has CORS support
+		    	if ($auth->isIgnoreOptionMethod() && $app['request']->getMethod() == 'OPTIONS') {
+		    		return true;
+		    	}
 
 		        if($auth->isIgnoreUri()) {
 		        	/**

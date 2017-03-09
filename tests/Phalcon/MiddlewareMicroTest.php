@@ -76,6 +76,14 @@ class MiddlewareMicroTest extends TestCase
 			$response->send();
 		});
 
+		$this->app->option('/members', function() use($app) { 
+			$response = $app["response"];
+			$response->setStatusCode(204);
+			$response->setContentType("application/json");
+			$response->setContent(json_encode(['members option']));
+			$response->send();
+		});
+
 	}
 
 	public function testLookForTokenFail()
@@ -88,6 +96,18 @@ class MiddlewareMicroTest extends TestCase
 
 		$this->assertEquals('401 Unauthorized',  $this->app['response']->getStatusCode());
 		$this->assertEquals('["missing token"]',  $this->app['response']->getContent());
+	}
+
+	public function testIgnoreOptionMethod()
+	{
+		//  override for testing
+		$_SERVER['REQUEST_URI'] = '/members';
+		$_SERVER["REQUEST_METHOD"] = "OPTIONS";
+		
+		// call this on test methods instead
+		$this->app->handle('/members');
+
+		$this->assertEquals('204 OK',  $this->app['response']->getStatusCode());
 	}
 
 	public function testIgnoreUri()

@@ -272,13 +272,22 @@ class Micro
      */
 	public function unauthorized() {
 		if($this->_onUnauthorized) {
-			return $this->_onUnauthorized($this, $this->app);
+			return call_user_func($this->_onUnauthorized, $this, $this->app);
 		}
 
 		$response = $this->app["response"];
 		$response->setStatusCode(401, 'Unauthorized');
 		$response->setContentType("application/json");
 		$response->setContent(json_encode([$this->getMessages()[0]]));
+
+		// CORS
+		if($this->isIgnoreOptionsMethod()) {
+	    	$response->setHeader("Access-Control-Allow-Origin", '*')
+		      ->setHeader("Access-Control-Allow-Methods", 'GET,PUT,POST,DELETE,OPTIONS')
+		      ->setHeader("Access-Control-Allow-Headers", 'Origin, X-Requested-With, Content-Range, Content-Disposition, Content-Type, Authorization')
+		      ->setHeader("Access-Control-Allow-Credentials", true);
+		}
+
 		$response->send();
 		return false;
 	}

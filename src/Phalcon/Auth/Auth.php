@@ -57,7 +57,7 @@ class Auth extends Adapter
 		}
 
 		$payload = $this->decode($token, $key);
-		if(!$payload) {
+		if(!$payload || empty($payload)) {
 			return false;
 		}
 

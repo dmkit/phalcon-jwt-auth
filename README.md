@@ -3,11 +3,11 @@
 A simple JWT middleware for Phalcon Micro to handle stateless authentication.
 
 ## Installation
-```
+```bash
 composer require dmkit/phalcon-jwt-auth
 ```
 or in your composer.json
-```
+```json
 {
     "require": {
 		"dmkit/phalcon-jwt-auth" : "dev-master"
@@ -16,7 +16,7 @@ or in your composer.json
 
 ```
 then run
-```
+```bash
 composer update
 ```
 
@@ -25,7 +25,7 @@ composer update
 ### Configuration - Loading the config service
 
 in config.ini or in any config file
-``` 
+```ini 
 [jwtAuth]
 
 ; JWT Secret Key
@@ -54,7 +54,7 @@ ignoreUri[] = /auth/application
 ```
 
 in bootstrap or index file
-```
+```php
 use Phalcon\Mvc\Micro;
 use Phalcon\Config\Adapter\Ini as ConfigIni;
 use Phalcon\Di\FactoryDefault;
@@ -85,7 +85,7 @@ $app->handle();
 
 ### Configuration - Don't want to use a config file? then pass the config instead
 in bootstrap or index file
-```
+```php
 use Phalcon\Mvc\Micro;
 use Phalcon\Config\Adapter\Ini as ConfigIni;
 use Phalcon\Di\FactoryDefault;
@@ -131,7 +131,7 @@ or pass the token as a query string
 ### Callbacks
 
 By default if the authentication fails, the middleware will stop the execution of routes and will immediately return a response of 401 Unauthorized. If you want to add your own handler:
-```
+```php
 $auth->onUnauthorized(function($authMicro, $app) {
 
     $response = $app["response"];
@@ -148,7 +148,7 @@ $auth->onUnauthorized(function($authMicro, $app) {
 ```
 
 If you want an additional checking on the authentication, like intentionally expiring a token based on the payload issued date, you may do so:
-```
+```php
 $auth->onCheck(function($auth) {
  // to get the payload
  $data = $auth->data();
@@ -164,7 +164,7 @@ $auth->onCheck(function($auth) {
 ### The Auth service
 
 You can access the middleware by calling the "auth" service. 
-```
+```php
 print_r( $app['auth']->data() );
 
 print_r( $app->getDI()->get('auth')->data('email') );
@@ -180,7 +180,7 @@ AuthMicro::$diName = 'jwtAuth';
 ### Creating a token
 
 In your controller or route handler
-```
+```php
 $payload = [ 
     'sub'   => $user->id, 
     'email' => $user->email,
@@ -193,7 +193,7 @@ $token = $this->auth->make($payload);
 
 ### Accessing the authenticated user / data
 In your controller or route handler
-```
+```php
 echo $this->auth->id(); // will look for sub or id payload
 
 echo $this->auth->data(); // return all payload
@@ -204,7 +204,7 @@ echo $this->auth->data('email');
 
 ### Extending
 If you want to add your own middleware or play around:
-```
+```php
 Dmkit\Phalcon\Auth\Auth.php and its adapters - does all the authentication
 
 Dmkit\Phalcon\Auth\TokenGetter\TokenGetter.php and its adapters - does the parsing or getting of token

@@ -125,7 +125,7 @@ Authorization: Bearer {yourtokenhere}
 ```
 or pass the token as a query string
 ```
-?token={yourtokenhere}
+?_token={yourtokenhere}
 ```
 
 ### Callbacks

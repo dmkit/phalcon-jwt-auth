@@ -103,7 +103,7 @@ $authConfig = [
             'exp' => 1440,
             'iss' => 'phalcon-jwt-auth'
         ],
-     'ignoreUri' : [
+     'ignoreUri' => [
             '/',
             'regex:/application/',
             'regex:/users/:POST,PUT',
@@ -125,7 +125,7 @@ Authorization: Bearer {yourtokenhere}
 ```
 or pass the token as a query string
 ```
-?token={yourtokenhere}
+?_token={yourtokenhere}
 ```
 
 ### Callbacks

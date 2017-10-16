@@ -134,7 +134,7 @@ class Micro
 	{
 		$diName = self::$diName;
 
-		$eventsManager = $this-app->getEventsManager() ?? new EventsManager();
+		$eventsManager = $this->app->getEventsManager() ?? new EventsManager();
 		$eventsManager->attach(
 		    "micro:beforeExecuteRoute",
 		    function (Event $event, $app) use($diName) {

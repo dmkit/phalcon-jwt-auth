@@ -4,7 +4,7 @@ A simple JWT middleware for Phalcon Micro to handle stateless authentication.
 
 ## Installation
 ```bash
-composer require dmkit/phalcon-jwt-auth
+$ composer require dmkit/phalcon-jwt-auth
 ```
 or in your composer.json
 ```json
@@ -17,7 +17,7 @@ or in your composer.json
 ```
 then run
 ```bash
-composer update
+$ composer update
 ```
 
 ## Usage
@@ -173,7 +173,7 @@ print_r( $app->getDI()->get('auth')->data('email') );
 print_r( $this->auth->data() );
 ```
 If you want to change the service name:
-```
+```php
 AuthMicro::$diName = 'jwtAuth';
 ```
 

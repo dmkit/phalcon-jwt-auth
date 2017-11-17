@@ -43,8 +43,8 @@ class MiddlewareMicroTest extends TestCase
 		$this->middleware = new AuthMicro($this->app);
 
 		$app = $this->app;
-		
-		$this->app->get('/', function() use($app) { 
+
+		$this->app->get('/', function() use($app) {
 			$response = $app["response"];
 			$response->setStatusCode(200);
 			$response->setContentType("application/json");
@@ -52,7 +52,7 @@ class MiddlewareMicroTest extends TestCase
 			$response->send();
 		});
 
-		$this->app->get('/members', function() use($app) { 
+		$this->app->get('/members', function() use($app) {
 			$response = $app["response"];
 			$response->setStatusCode(200);
 			$response->setContentType("application/json");
@@ -60,7 +60,7 @@ class MiddlewareMicroTest extends TestCase
 			$response->send();
 		});
 
-		$this->app->post('/members', function() use($app) { 
+		$this->app->post('/members', function() use($app) {
 			$response = $app["response"];
 			$response->setStatusCode(200);
 			$response->setContentType("application/json");
@@ -68,7 +68,7 @@ class MiddlewareMicroTest extends TestCase
 			$response->send();
 		});
 
-		$this->app->put('/members', function() use($app) { 
+		$this->app->put('/members', function() use($app) {
 			$response = $app["response"];
 			$response->setStatusCode(200);
 			$response->setContentType("application/json");
@@ -76,7 +76,7 @@ class MiddlewareMicroTest extends TestCase
 			$response->send();
 		});
 
-		$this->app->options('/members', function() use($app) { 
+		$this->app->options('/members', function() use($app) {
 			$response = $app["response"];
 			$response->setStatusCode(204);
 			$response->setContentType("application/json");
@@ -90,11 +90,11 @@ class MiddlewareMicroTest extends TestCase
 	{
 		//  override for testing
 		$_SERVER['REQUEST_URI'] = '/members';
-		
+
 		// call this on test methods instead
 		$this->app->handle('/members');
 
-		$this->assertEquals('401 Unauthorized',  $this->app['response']->getStatusCode());
+		$this->assertEquals(401,  $this->app['response']->getStatusCode());
 		$this->assertEquals('["missing token"]',  $this->app['response']->getContent());
 	}
 
@@ -105,22 +105,22 @@ class MiddlewareMicroTest extends TestCase
 		$_SERVER["REQUEST_METHOD"] = "OPTIONS";
 
 		$this->middleware->setIgnoreOptionsMethod();
-		
+
 		// call this on test methods instead
 		$this->app->handle('/members');
 
-		$this->assertEquals('204 No Content',  $this->app['response']->getStatusCode());
+		$this->assertEquals(204,  $this->app['response']->getStatusCode());
 	}
 
 	public function testIgnoreUri()
 	{
 		$_SERVER['REQUEST_URI'] = '/members';
 		$_SERVER["REQUEST_METHOD"] = "PUT";
-		
+
 		// call this on test methods instead
 		$this->app->handle('/members');
 
-		$this->assertEquals('200 OK',  $this->app['response']->getStatusCode());
+		$this->assertEquals(200,  $this->app['response']->getStatusCode());
 		$this->assertEquals('["members put"]',  $this->app['response']->getContent());
 	}
 
@@ -133,12 +133,12 @@ class MiddlewareMicroTest extends TestCase
 
 		$jwt = JWT::encode($payload, $this->config['secretKey']);
 
-		$_GET['token'] = $jwt;
-		
+		$_GET['_token'] = $jwt;
+
 		// call this on test methods instead
 		$this->app->handle('/members');
 
-		$this->assertEquals('200 OK',  $this->app['response']->getStatusCode());
+		$this->assertEquals(200,  $this->app['response']->getStatusCode());
 		$this->assertEquals('["members put"]',  $this->app['response']->getContent());
 		$this->assertEquals($payload['sub'],  $this->app['auth']->id());
 	}
@@ -153,12 +153,12 @@ class MiddlewareMicroTest extends TestCase
 		$payload['exp'] = -20;
 		$jwt = JWT::encode($payload, $this->config['secretKey']);
 
-		$_GET['token'] = $jwt;
-		
+		$_GET['_token'] = $jwt;
+
 		// call this on test methods instead
 		$this->app->handle('/members');
 
-		$this->assertEquals('401 Unauthorized',  $this->app['response']->getStatusCode());
+		$this->assertEquals(401,  $this->app['response']->getStatusCode());
 		$this->assertEquals('["Expired token"]',  $this->app['response']->getContent());
 	}
 
@@ -171,12 +171,12 @@ class MiddlewareMicroTest extends TestCase
 		// let's expired the token
 		$jwt = JWT::encode($payload, $this->config['secretKey']);
 
-		$_GET['token'] = $jwt;
-		
+		$_GET['_token'] = $jwt;
+
 		// call this on test methods instead
 		$this->app->handle('/members');
 
-		$this->assertEquals('200 OK',  $this->app['response']->getStatusCode());
+		$this->assertEquals(200,  $this->app['response']->getStatusCode());
 		$this->assertEquals('["members post"]',  $this->app['response']->getContent());
 
 		// make sure data is correct

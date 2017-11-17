@@ -42,6 +42,13 @@ class AuthTest extends TestCase
 		$this->assertEquals($this->jwt, $token);
 	}
 
+	public function testWithEmptyAuth()
+	{
+		$auth = new Auth;
+		$auth->id();
+		$this->assertEquals(NULL, $auth->id());
+	}
+
 	public function testCheckSuccess()
 	{
 		$response = $this->createMock(RequestInterface::class);
@@ -113,5 +120,5 @@ class AuthTest extends TestCase
 
 		$this->assertEquals($expected_errors, $auth->getMessages());
 	}
-	
+
 }

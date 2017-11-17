@@ -16,7 +16,7 @@ abstract class Adapter implements AdapterInterface
 
 	// window time for jwt to expire
 	protected $leeway;
-	
+
 	// supported algs are on JWT::$supported_algs
 	protected $algo = 'HS256';
 
@@ -28,7 +28,7 @@ abstract class Adapter implements AdapterInterface
      * @param int $mins
      *
      * @return int
-     */	
+     */
 	public function minToSec(int $mins)
 	{
 		return (60 * $mins);
@@ -39,8 +39,8 @@ abstract class Adapter implements AdapterInterface
      *
      * @param int $mins
      *
-     */	
-	public function setLeeway(int $mins) 
+     */
+	public function setLeeway(int $mins)
 	{
 		$this->leeway = $this->minToSec($mins);
 	}
@@ -51,7 +51,7 @@ abstract class Adapter implements AdapterInterface
      *
      * @param int $mins
      *
-     */	
+     */
 	public function setAlgo(string $alg) {
 		$this->algo = $alg;
 	}
@@ -63,7 +63,7 @@ abstract class Adapter implements AdapterInterface
      * @param string $key
      *
      * @return array
-     */	
+     */
 	protected function decode($token, $key)
 	{
 		try {
@@ -72,7 +72,7 @@ abstract class Adapter implements AdapterInterface
 			}
 
 			$payload = (array) JWT::decode($token, $key, [$this->algo]);
-			
+
 			return $payload;
 
 		} catch(\Exception $e) {
@@ -104,7 +104,7 @@ abstract class Adapter implements AdapterInterface
      * @param string $msg
      *
      */
-	public function appendMessage(string $msg) 
+	public function appendMessage(string $msg)
 	{
 		$this->errorMsgs[] = $msg;
 	}
@@ -126,7 +126,7 @@ abstract class Adapter implements AdapterInterface
      */
 	public function id()
 	{
-		return $this->payload['sub'] ?? $this->payload['id'];
+		return $this->payload['sub'] ?? $this->payload['id'] ?? NULL;
 	}
 
 	/**

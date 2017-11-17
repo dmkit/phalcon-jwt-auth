@@ -25,7 +25,7 @@ $ composer update
 ### Configuration - Loading the config service
 
 in config.ini or in any config file
-```ini 
+```ini
 [jwtAuth]
 
 ; JWT Secret Key
@@ -65,7 +65,7 @@ $di = new FactoryDefault();
 
 /**
  * IMPORTANT:
- * You must set "config" service that will load the configuration file. 
+ * You must set "config" service that will load the configuration file.
  */
 $config = new ConfigIni( APP_PATH . "app/config/config.ini");
 $di->set(
@@ -137,11 +137,11 @@ $auth->onUnauthorized(function($authMicro, $app) {
     $response = $app["response"];
     $response->setStatusCode(401, 'Unauthorized');
     $response->setContentType("application/json");
-    
+
     // to get the error messages
     $response->setContent(json_encode([$authMicro->getMessages()[0]]));
     $response->send();
-    
+
     // return false to stop the execution
     return false;
 });
@@ -152,18 +152,18 @@ If you want an additional checking on the authentication, like intentionally exp
 $auth->onCheck(function($auth) {
  // to get the payload
  $data = $auth->data();
- 
+
  if($data['iat'] <= strtotime('-1 day')) ) {
     // return false to invalidate the authentication
     return false;
  }
- 
+
 });
 ```
 
 ### The Auth service
 
-You can access the middleware by calling the "auth" service. 
+You can access the middleware by calling the "auth" service.
 ```php
 print_r( $app['auth']->data() );
 
@@ -181,8 +181,8 @@ AuthMicro::$diName = 'jwtAuth';
 
 In your controller or route handler
 ```php
-$payload = [ 
-    'sub'   => $user->id, 
+$payload = [
+    'sub'   => $user->id,
     'email' => $user->email,
     'username' =>  $user->username,
     'role'  => 'admin',
@@ -213,3 +213,17 @@ Dmkit\Phalcon\Auth\TokenGetter\TokenGetter.php and its adapters - does the parsi
 ### JWT
 Phalcon JWT Auth uses the Firebase JWT library. To learn more about it and JSON Web Tokens in general, visit: https://github.com/firebase/php-jwt
 https://jwt.io/introduction/
+
+### Tests
+Install PHPUnit https://phpunit.de/getting-started.html
+```php
+$ phpunit --configuration phpunit.xml.dist
+PHPUnit 5.6.5 by Sebastian Bergmann and contributors.
+
+......["missing token"].["members option"].["members put"].["members put"].["Expired token"].["members post"]....                                                   15 / 15 (100%)
+
+Time: 73 ms, Memory: 10.00MB
+
+OK (15 tests, 27 assertions)
+
+```

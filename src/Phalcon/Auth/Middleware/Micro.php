@@ -264,7 +264,7 @@ class Micro
 	}
 
 	/**
-	 * Checks if the SERVER NAME (domain) can bypass the authentication.
+	 * Checks if the HTTP HOST (domain) can bypass the authentication.
 	 *
 	 * @return bool
 	 */
@@ -280,8 +280,8 @@ class Micro
 		// http method
 		$method = $request->getMethod();
 
-		// server name
-		$domain = $request->getServerName();
+		// http host
+		$domain = $request->getHttpHost();
 
 		return $this->hasMatchIgnoreDomains($domain, $method);
 	}

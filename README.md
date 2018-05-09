@@ -51,6 +51,16 @@ ignoreUri[] = regex:/users/:POST,PUT
 ;; literal strings
 ignoreUri[] = /auth/user:POST,PUT
 ignoreUri[] = /auth/application
+
+; If you want to disable the middleware on certain domains:
+;; regex pattern with http methods
+ignoreDomain[] = regex:domain\.com
+ignoreDomain[] = regex:api\.domain\.com
+ignoreDomain[] = regex:.+\.domain\.com
+
+;; literal strings
+ignoreDomain[] = domain.com
+ignoreDomain[] = api.domain.com
 ```
 
 in bootstrap or index file
@@ -100,16 +110,23 @@ $app = new Micro($di);
 $authConfig = [
     'secretKey' => '923753F2317FC1EE5B52DF23951B1',
     'payload' => [
-            'exp' => 1440,
-            'iss' => 'phalcon-jwt-auth'
-        ],
-     'ignoreUri' => [
-            '/',
-            'regex:/application/',
-            'regex:/users/:POST,PUT',
-            '/auth/user:POST,PUT',
-            '/auth/application'
-        ]
+        'exp' => 1440,
+        'iss' => 'phalcon-jwt-auth'
+    ],
+    'ignoreUri' => [
+        '/',
+        'regex:/application/',
+        'regex:/users/:POST,PUT',
+        '/auth/user:POST,PUT',
+        '/auth/application'
+    ],
+    'ignoreDomain' => [
+        'domain.com',
+        'api.domain.com',
+        'regex:domain\.com',
+        'regex:api\.domain\.com',
+        'regex:.+\.domain\.com'
+    ]    
 ];
 
 // AUTH MICRO

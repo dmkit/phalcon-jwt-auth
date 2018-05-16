@@ -31,6 +31,9 @@ class Micro
 	// ignored urls
 	protected $ignoreUri;
 
+	// ignored domains
+	protected $ignoreDomain;
+
 	// JWT secret key
 	protected $secretKey;
 
@@ -57,12 +60,16 @@ class Micro
 		 * [jwtAuth]
 		 * secretKey = nSrL7k4/7NcW|AN
 		 * payload[exp] = 120
-		 * payload[iss] = phalcon-jwt-auth 
-		 * payload[sub] = 123 
-		 * payload[name] = John Doe 
-		 * payload[role] = admin 
+		 * payload[iss] = phalcon-jwt-auth
+		 * payload[sub] = 123
+		 * payload[name] = John Doe
+		 * payload[role] = admin
 		 * ignoreUri[] = regex:/register/:POST
 		 * ignoreUri[] = /register
+		 * ignoreDomain[] = regex:api\.domain\.com:POST
+		 * ignoreDomain[] = api.domain.com:POST,GET
+		 * ignoreDomain[] = regex:api\.domain\.com
+		 * ignoreDomain[] = api.domain.com
 		 */
 
 		if(!$config && !$app->getDI()->has(self::$configDi)) {
@@ -76,11 +83,15 @@ class Micro
 		$this->config = $config ?? $app[self::$configDi]->{self::$configSection};
 
 		if( !is_array($this->config) ) {
-			$this->config = (array) $this->config;			
+			$this->config = (array) $this->config;
 		}
 
 		if(isset($this->config['ignoreUri'])) {
 			$this->ignoreUri = $this->config['ignoreUri'];
+		}
+
+		if(isset($this->config['ignoreDomain'])) {
+			$this->ignoreDomain = $this->config['ignoreDomain'];
 		}
 
 		// secret key is required
@@ -139,29 +150,28 @@ class Micro
 
 		$eventsManager = $this->app->getEventsManager() ?? new EventsManager();
 		$eventsManager->attach(
-		    "micro:beforeExecuteRoute",
-		    function (Event $event, $app) use($diName) {
+		    'micro:beforeExecuteRoute',
+		    function (Event $event, $app) use ($diName) {
 		    	$auth = $app[$diName];
 
-		    	// check if it has CORS support
+		    	// Check if it has CORS support
 		    	if ($auth->isIgnoreOptionsMethod() && $app['request']->getMethod() == 'OPTIONS') {
 		    		return true;
 		    	}
 
-		        if($auth->isIgnoreUri()) {
+		        if ($auth->isIgnoreUri() || $auth->isIgnoreDomain()) {
 		        	/**
 		        	 * Let's try to parse if there's a token
 		        	 * but we don't want to get an invalid token
 		        	 */
-		        	if( !$auth->check() && $this->getMessages()[0] != 'missing token') 
-		        	{
+		        	if (!$auth->check() && $this->getMessages()[0] != 'missing token') {
 		        		return $auth->unauthorized();
 		        	}
 
 		        	return true;
 		        }
 
-		        if($auth->check()) {
+		        if ($auth->check()) {
 		        	return true;
 		        }
 
@@ -194,7 +204,38 @@ class Micro
 			$methods = ( !$methods || empty($methods) ? false : explode(',', $methods) );
 
 			$match = ( $type == 'str' ? $requestUri == $pattern : preg_match("#{$pattern}#", $requestUri) );
-			if( $match && (!$methods || in_array($requestMethod, $methods)) ) {
+			if ($match && (!$methods || in_array($requestMethod, $methods))) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks if the domain has a match in the passed self::$ignoreDomain.
+	 *
+	 * @param string $requestDomain
+	 * @param string $requestMethod HTTP METHODS
+	 *
+	 * @return bool
+	 */
+	protected function hasMatchIgnoreDomains($requestDomain, $requestMethod)
+	{
+		foreach($this->ignoreDomain as $domain) {
+			if(strpos($domain, 'regex:') === false) {
+				$type = 'str';
+			} else {
+				$type = 'regex';
+				$domain = str_replace('regex:', '', $domain);
+			}
+
+			list($pattern, $methods) = (strpos($domain, ':') === false ? [$domain, false] : explode(':', $domain ));
+			$methods = (!$methods || empty($methods) ? false : explode(',', $methods));
+
+			$match = ($type == 'str' ? $requestDomain == $pattern : preg_match("#{$pattern}#", $requestDomain));
+
+			if ($match && (!$methods || in_array($requestMethod, $methods))) {
 				return true;
 			}
 		}
@@ -226,6 +267,29 @@ class Micro
 	}
 
 	/**
+	 * Checks if the HTTP HOST (domain) can bypass the authentication.
+	 *
+	 * @return bool
+	 */
+	public function isIgnoreDomain()
+	{
+		if (!$this->ignoreDomain) {
+			return false;
+		}
+
+		// access request object
+		$request = $this->app['request'];
+
+		// http method
+		$method = $request->getMethod();
+
+		// http host
+		$domain = $request->getHttpHost();
+
+		return $this->hasMatchIgnoreDomains($domain, $method);
+	}
+
+	/**
      * Authenticates.
      *
      * @return bool
@@ -253,7 +317,7 @@ class Micro
      *
      * @param callable $callback
      */
-	public function onCheck($callback) 
+	public function onCheck($callback)
 	{
 		$this->auth->onCheck($callback);
 	}
@@ -302,7 +366,7 @@ class Micro
      */
 	public function getMessages()
 	{
-		return $this->auth->getMessages(); 
+		return $this->auth->getMessages();
 	}
 
 	/**

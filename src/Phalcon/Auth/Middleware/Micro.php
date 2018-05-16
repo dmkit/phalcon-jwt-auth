@@ -50,7 +50,7 @@ class Micro
      * @param array|config $config
      *
      */
-	public function __construct(MvcMicro $app, array $config=NULL)
+	public function __construct(MvcMicro $app, array $config=NULL, Auth $auth=NULL)
 	{
 		/**
 		 * example of config:
@@ -92,7 +92,10 @@ class Micro
 		$this->payload = (array) $this->config['payload'] ?? [];
 
 		$this->app = $app;
-		$this->auth = new Auth;
+		$this->auth = $auth;
+		if($auth === NULL) {
+		    $this->auth = new Auth;
+		}
 
 		$this->setDi();
 		$this->setEventChecker();

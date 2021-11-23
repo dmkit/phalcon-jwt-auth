@@ -13,7 +13,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=7.0",
-        "ext-phalcon": "^3.0",
+        "ext-phalcon": "^3.0||^4.0",
         "firebase/php-jwt": "^5.0"
     },
     "autoload": {
